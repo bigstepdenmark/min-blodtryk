@@ -19,6 +19,8 @@ async function writeRecord(record){const uid=requireAccount();await setDoc(cloud
 async function addRecords(records){const uid=requireAccount();let added=0;for(const record of records){if(currentUser?.uid!==uid)throw new Error('Kontoen er ændret. Start importen igen.');const ref=cloudRef(uid,record.id);const didAdd=await runTransaction(cloud,async tx=>{const existing=await tx.get(ref);if(existing.exists())return false;tx.set(ref,record);return true;});if(didAdd)added++;}if(currentUser?.uid!==uid)throw new Error('Kontoen er ændret.');return added;}
 
 const $ = id => document.getElementById(id);
+function formatTimeInput(value){const digits=value.replace(/[^0-9]/g,'').slice(0,4);return digits.length>2?digits.slice(0,2)+':'+digits.slice(2):digits;}
+$('time').addEventListener('input',event=>{const input=event.target;const original=input.value;const caret=input.selectionStart??original.length;const digitsBefore=original.slice(0,caret).replace(/[^0-9]/g,'').length;input.value=formatTimeInput(original);const nextCaret=Math.min(input.value.length,digitsBefore+(digitsBefore>2?1:0));input.setSelectionRange(nextCaret,nextCaret);});
 let db, sessions = [], editing = null;
 function endDate(start){const d=new Date(start+'T12:00:00');d.setDate(d.getDate()+2);return dateString(d);}
 function blockRange(start){const f=new Intl.DateTimeFormat('da-DK',{day:'numeric',month:'short',year:'numeric'});return f.format(new Date(start+'T12:00:00'))+' – '+f.format(new Date(endDate(start)+'T12:00:00'));}
