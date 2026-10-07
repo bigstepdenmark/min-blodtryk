@@ -9,3 +9,4 @@ input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:left}
 input[type="date"]::-webkit-datetime-edit{min-width:0;padding:0}
 #time{min-width:0;width:100%;box-sizing:border-box}
 @media(max-width:430px){.date-fields{grid-template-columns:minmax(0,1fr);gap:16px}}
+.account{background:#e8edff;border-radius:14px;padding:16px;margin-bottom:20px}.account p{margin:0 0 12px;font-size:.875rem;overflow-wrap:anywhere}.account .backup-actions{gap:8px}

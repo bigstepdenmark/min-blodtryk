@@ -1,50 +1,51 @@
-# Mit blodtryk
+# Mit blodtryk – Firebase-version
 
-En dansk, iPhone-venlig PWA uden backend, login eller eksterne biblioteker.
+Din app har nu Google-login og Cloud Firestore. Den ligger fortsat på GitHub Pages. Projektet er blodtryk-a1472. Kun målinger med bekræftelsen “Gemt i Firebase” er gemt online. Internet er nødvendigt for login, hentning og gemning. Google-popup-login anvendes for at undgå problemer med redirect-login på Safari og GitHub Pages.
 
-## Brug
+## 1. Tag lokal backup
 
-1. Vælg startdatoen for en 3-dages session, fx 7. oktober. Sessionen omfatter 7., 8. og 9. oktober.
-Tider indtastes og vises altid i 24-timers format, fx 08:30 eller 20:30.
+Inden opdatering: hent backup fra din eksisterende app. Hvis du allerede har opdateret, findes “Hent tidligere lokal backup” i den nye version. Den læser den oprindelige IndexedDB og kræver ikke login. Brug samme webadresse og samme browser/hjemmeskærmsapp som før. Lokale målinger slettes ikke under migration.
 
-2. Registrér morgen eller aften med tre målinger af overtryk, undertryk og puls.
-3. Brug samme startdato til alle målerunder i sessionen. Måledatoen skal ligge inden for de tre dage.
-4. Under Overblik vælges en 3-dages session. Her vises gennemsnit af blodtryk og puls, graf og alle dens målerunder. Appen viser, hvor mange af de tre dage der er registreret målinger for.
-5. Når du starter næste session, vælger du en ny startdato.
+## 2. Aktivér Google-login
 
-Gennemsnit er det aritmetiske gennemsnit af alle registrerede rå målinger i den valgte session, afrundet til nærmeste heltal. Ingen målinger eller dage udelades automatisk. En delvist udfyldt session får også et gennemsnit, og antal målinger og registrerede dage vises. Appen giver ingen medicinsk vurdering.
+Firebase Console → blodtryk-a1472 → Build → Authentication → Get started → Sign-in method → Google → Enable. Vælg support-mail og gem.
 
-## GitHub Pages
+Under Authentication → Settings → Authorized domains tilføjes dit GitHub Pages-domæne, fx ismail.github.io. Brug kun domænet, uden https:// og uden /blodtryk/. Til lokal test tilføjes localhost separat.
 
-1. Opret et repository, og læg indholdet af denne mappe i repositoryets rod: index.html, app.js, style.css, sw.js, manifest.webmanifest og alle ikoner.
-2. Under repositoryets Settings → Pages vælges Deploy from a branch, main og / (root).
-3. Åbn den viste HTTPS-adresse i Safari på iPhone.
-4. Vælg Del → Føj til hjemmeskærm. Åbn derefter appen fra hjemmeskærmen og registrér dine målinger dér.
+## 3. Opret Firestore
 
-Alternativt kan filerne lægges i en mappe på din egen HTTPS-webserver. Relative adresser understøtter en undermappe. Der er intet build-trin.
+Build → Firestore Database → Create database. Vælg Standard edition, hvis edition skal vælges, database-ID (default), en europæisk placering og Production mode. Brug gratis Spark-plan; appen kræver ikke Storage, Functions eller betalt Hosting.
 
-## Lokal afprøvning på computer
+## 4. Aktivér adgangsregler
 
-Kør fra denne mappe:
+Firestore Database → Rules: erstat hele indholdet med filen firestore.rules og klik Publish. Andre brede tilladelser må ikke stå tilbage i regelsættet, fordi matchende tilladelser kombineres. Reglerne tillader kun loginbrugeren at læse/skrive /users/DERES_UID/sessions/ID. Målingernes form og interval valideres også. Andre stier har ingen tilladelser.
 
-```sh
-python3 -m http.server 8080
-```
+Alle kan logge ind med Google og gemme deres egne målinger. De kan ikke læse dine. Hvis projektet kun skal tillade én bestemt Google-konto, kan reglerne senere begrænses til denne kontos Firebase UID. Service account-nøgler anvendes ikke i appen.
 
-Åbn http://localhost:8080. Offline-funktion kræver HTTPS eller localhost. En løs HTML-fil i iPhones Filer-app fungerer ikke som en installerbar PWA. Afprøvning fra telefonen via en computers IP-adresse kræver HTTPS for offline-funktionen.
+## 5. Opdatér GitHub Pages
 
-## Lagring og iCloud
+Upload filerne i denne mappe til den samme rod som før. De ændrede filer er index.html, app.js, style.css og sw.js. firestore.rules skal publiceres i Firebase Console; upload til GitHub aktiverer den ikke.
 
-Målinger gemmes i IndexedDB på enheden, knyttet til webadressen og browserens/appens lokale lager. Der sendes ingen målinger til serveren, og der er ingen automatisk iCloud-synkronisering. Undgå at skifte webadresse eller skifte mellem browser og hjemmeskærmsapp uden at tage backup; de kan have forskelligt lager.
+Vent på GitHub Pages-publiceringen. Åbn appen online, luk og genåbn den ved behov for at aktivere den nye version. Dine tidligere målinger bevares i det lokale lager.
 
-Under Backup og installation kan du hente JSON-backup, gemme den i Filer → iCloud Drive og indlæse den senere. Import tilføjer kun målerunder med nye ID'er og overskriver ikke eksisterende målerunder. CSV indeholder alle rå målinger samt sessionernes startdatoer og kan åbnes i Excel. Backup og CSV indeholder dine helbredsoplysninger.
+## 6. Flyt dine målinger
 
-Browserdata er ikke en garanteret permanent backup. Data kan mistes ved rydning af browserdata, afinstallation, pladsproblemer eller tab af telefon. Eksportér jævnligt.
+Log ind med Google. Klik “Flyt lokale målinger til Firebase”. Dialogen viser modtagerkontoen. Bekræft kun med din egen konto. Eksisterende dokument-ID'er springes over, også ved gentaget import. Hvis overførslen afbrydes halvvejs, kan du prøve igen uden at overskrive allerede overførte målinger.
 
-## Opdateringer
+Alternativt kan du indlæse din JSON-backup. Vælg Overblik for at kontrollere sessioner, gennemsnit og antal målerunder. Log ind med samme konto på en anden browser eller enhed og kontrollér, at målingerne er der, før du rydder lokale browserdata.
 
-Når du ændrer appens filer, ændrer du også CACHE-versionen i sw.js (fx mit-blodtryk-v2). Den nye version henter alle lokale appfiler igen. Målingerne ligger separat i IndexedDB og bevares.
+## Gemning og backup
 
-## Validering
+Appen venter på Firebase-bekræftelse før den viser “Gemt i Firebase”. Ved netværksfejl beholdes tallene i formularen. Hvis forbindelsen går under gemning, kan Firebase vente på genetablering; luk ikke appen før bekræftelsen. Der er ikke en separat offlinekø, der er garanteret bevaret ved genåbning. Opdater målinger henter den aktuelle serverversion. Ved samtidig redigering på to enheder vinder den sidst gemte version.
 
-JavaScript-syntaks, beregning af gennemsnit, gruppering af 3-dages sessioner, datogrænser og backupvalidering er kontrolleret automatisk. Browser- og iPhone-test kunne ikke gennemføres i byggemiljøet; afprøv registrering, genåbning, offlinebrug og backup efter hosting, før appen bruges som eneste dagbog.
+Online gemning er ikke en versionsbackup: slettede og redigerede data ændres også online. Hent fortsat JSON-backup efter behov. Eksport omfatter den senest hentede historik for den indloggede konto. CSV indeholder alle rå målinger.
+
+## 3-dages sessioner
+
+Vælg samme startdato for tre sammenhængende dage. Hver morgen-/aftenrunde indeholder tre målinger. Sessionens gennemsnit beregnes af alle dens registrerede rå målinger, afrundet til nærmeste heltal. Antal registrerede dage vises, også når sessionen endnu ikke er færdig. Tider bruger 24-timers format. Appen giver ingen lægelig vurdering.
+
+## Kontrol
+
+JavaScript-syntaks og beregnings-/importlogik er kontrolleret. Cloud-adapteren er testet med simuleret Firebase for kontoadskillelse og gentaget migration. Rigtige Google-login, Firestore-regler og iPhone-adfærd kan først afprøves efter console-opsætningen. Kontrollér i Firebase Rules Playground, at uautentificeret adgang og adgang med en anden UID afvises, og at ejeren kan læse sin egen sti. Browser- og emulator-test var ikke tilgængelig under byggeriet.
+
+Kildevejledninger: https://firebase.google.com/docs/auth/web/google-signin og https://firebase.google.com/docs/firestore/quickstart
